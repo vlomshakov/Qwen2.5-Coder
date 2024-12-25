@@ -2,9 +2,11 @@ import os
 import json
 import sys
 
+from openai import OpenAI
+
 sys.path.append("../../../livecode_bench")
 from lcb_runner.runner.parser import get_args
-from lcb_runner.lm_styles import LanguageModelStore
+from lcb_runner.lm_styles import LanguageModelStore, LanguageModel
 from lcb_runner.runner.vllm_runner import VLLMRunner
 from lcb_runner.utils.path_utils import get_output_path
 from lcb_runner.evaluation import extract_instance_results
@@ -14,6 +16,30 @@ from lcb_runner.runner.scenario_router import (
     sort_and_extract_save_results,
     get_metrics,
 )
+
+import tqdm
+
+
+def api_query(messages, model: LanguageModel, args):
+    client = OpenAI(
+        api_key=model.api_key,
+        base_url=model.api_url,
+
+    )
+
+    completion = client.chat.completions.create(
+        model=model.model_name,
+        messages=messages,
+        temperature=args.temperature,
+        max_tokens=args.max_tokens,
+        stop=args.stop,
+        presence_penalty=0,
+        frequency_penalty=0,
+        top_p=args.top_p,
+        n=args.n
+    )
+    return completion.choices[0].message.content
+
 
 
 def main():
@@ -43,8 +69,17 @@ def main():
         remaining_benchmark = benchmark
 
     if len(remaining_benchmark) > 0:
-        runner = VLLMRunner(args, model)
-        results: list[str] = runner.run_main(remaining_benchmark, format_prompt)
+        results = []
+        if model.api_url is None:
+            runner = VLLMRunner(args, model)
+            results: list[str] = runner.run_main(remaining_benchmark, format_prompt)
+        else:
+            prompts = [
+                format_prompt(problem, model.model_style) for problem in benchmark
+            ]
+            for prompt in tqdm.tqdm(prompts):
+                response = api_query(prompt, model, args)
+                results.append(response)
     else:
         results = []
 

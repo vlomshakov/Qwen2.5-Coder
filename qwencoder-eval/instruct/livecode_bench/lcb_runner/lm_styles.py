@@ -34,12 +34,24 @@ class LanguageModel:
     model_style: LMStyle
     release_date: datetime | None  # XXX Should we use timezone.utc?
     link: str | None = None
+    api_url: str | None = None
+    api_key: str | None = None
+
 
     def __hash__(self) -> int:
         return hash(self.model_name)
 
 
 LanguageModelList: list[LanguageModel] = [
+    LanguageModel(
+        "tgi",
+        "In-House-QwenApi",
+        LMStyle.OpenAIChat,
+        datetime(2024, 4, 16),
+        link=None,
+        api_url="http://127.0.0.1:9001/v1",
+        api_key="no_needed",
+    ),
     LanguageModel(
         "SelfDefined",
         "SelfDefined",
