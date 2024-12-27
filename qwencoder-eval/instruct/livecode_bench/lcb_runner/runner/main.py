@@ -6,6 +6,7 @@ from typing import List
 from openai import OpenAI
 
 sys.path.append("../../../livecode_bench")
+from lcb_runner.runner.ApiRunner import ApiRunner
 from lcb_runner.runner.parser import get_args
 from lcb_runner.lm_styles import LanguageModelStore, LanguageModel
 from lcb_runner.runner.vllm_runner import VLLMRunner
@@ -69,17 +70,14 @@ def main():
         remaining_benchmark = benchmark
 
     if len(remaining_benchmark) > 0:
-        results: List[List[str]] = []
-        if model.api_url is None:
-            runner = VLLMRunner(args, model)
-            results: list[str] = runner.run_main(remaining_benchmark, format_prompt)
-        else:
-            prompts = [
-                format_prompt(problem, model.model_style) for problem in benchmark
-            ]
-            for prompt in tqdm.tqdm(prompts):
-                response: str = api_query(prompt, model, args)
-                results.append([response])
+        runner = VLLMRunner(args, model) if model.api_url is None else ApiRunner(args, model)
+        results: List[List[str]] = runner.run_main(remaining_benchmark, format_prompt)
+        # prompts = [
+        #     format_prompt(problem, model.model_style) for problem in benchmark
+        # ]
+        # for prompt in tqdm.tqdm(prompts):
+        #     response: str = api_query(prompt, model, args)
+        #     results.append([response])
     else:
         results = []
 
