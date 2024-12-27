@@ -27,7 +27,7 @@ def get_output_path(model: LanguageModel, args) -> str:
     scenario = args.scenario
     n = args.n
     temperature = args.temperature
-    path = f"output/{model_repr}/{scenario}_{n}_{temperature}.json"
+    path = f"{args.output_dir}/{model_repr}/{scenario}_{n}_{temperature}.json"
     ensure_dir(path)
     return path
 

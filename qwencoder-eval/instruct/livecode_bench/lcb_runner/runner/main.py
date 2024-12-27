@@ -1,6 +1,7 @@
 import os
 import json
 import sys
+from typing import List
 
 from openai import OpenAI
 
@@ -23,8 +24,7 @@ import tqdm
 def api_query(messages, model: LanguageModel, args):
     client = OpenAI(
         api_key=model.api_key,
-        base_url=model.api_url,
-
+        base_url=model.api_url
     )
 
     completion = client.chat.completions.create(
@@ -69,7 +69,7 @@ def main():
         remaining_benchmark = benchmark
 
     if len(remaining_benchmark) > 0:
-        results = []
+        results: List[List[str]] = []
         if model.api_url is None:
             runner = VLLMRunner(args, model)
             results: list[str] = runner.run_main(remaining_benchmark, format_prompt)
@@ -78,8 +78,8 @@ def main():
                 format_prompt(problem, model.model_style) for problem in benchmark
             ]
             for prompt in tqdm.tqdm(prompts):
-                response = api_query(prompt, model, args)
-                results.append(response)
+                response: str = api_query(prompt, model, args)
+                results.append([response])
     else:
         results = []
 
