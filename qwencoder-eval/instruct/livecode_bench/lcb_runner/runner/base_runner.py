@@ -54,6 +54,8 @@ class BaseRunner(ABC):
         if self.args.use_cache:
             cache[prompt] = result
 
+        return result
+
     def run_batch(self, prompts: list[str]) -> list[str]:
         if self.args.multiprocess > 1:
             return run_tasks_in_parallel(
